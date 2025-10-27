@@ -41,7 +41,8 @@ public class PatientService {
         return patient;
     }
     public List<PatientDto> getAllPatients() {
-        return patients;
+        return new ArrayList<>(patients); // Return a copy to avoid external modifications
+
     }
     public PatientDto getPatientById(Long id) {
         for (PatientDto p : patients) {

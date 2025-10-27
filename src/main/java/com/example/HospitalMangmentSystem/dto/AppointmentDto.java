@@ -27,4 +27,5 @@ public class AppointmentDto {
         this.priority = priority;
         this.notes = notes;
     }
+    public AppointmentDto() {}
 }

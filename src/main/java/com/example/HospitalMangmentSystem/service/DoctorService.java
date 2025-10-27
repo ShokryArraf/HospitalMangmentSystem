@@ -30,7 +30,8 @@ public class DoctorService {
 
     }
     public List<DoctorDto> getAllDoctors() {
-        return this.doctors;
+        return new ArrayList<>(doctors); // Return a copy to avoid external modifications
+
     }
     public DoctorDto getDoctorById(Long id) {
         for (DoctorDto d : this.doctors) {
