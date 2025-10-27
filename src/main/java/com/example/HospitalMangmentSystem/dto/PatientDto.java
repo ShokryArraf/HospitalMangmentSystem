@@ -15,7 +15,7 @@ public class PatientDto {
     private String email;
     private String phoneNumber;
     private String dateOfBirth;
-    private Integer age; // מחושב!
+    private Integer age;
     private Set<Long> appointmentIds = new HashSet<>();
 
     public PatientDto(Long id, String lastName, String firstName, String email, String phoneNumber, String dateOfBirth, Integer age, Set<Long> appointmentIds) {
@@ -28,4 +28,5 @@ public class PatientDto {
         this.age = age;
         this.appointmentIds = appointmentIds;
     }
+    public PatientDto() {}
 }

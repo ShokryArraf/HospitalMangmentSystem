@@ -2,6 +2,7 @@ package com.example.HospitalMangmentSystem.service;
 
 import com.example.HospitalMangmentSystem.dto.DoctorCreateDto;
 import com.example.HospitalMangmentSystem.dto.DoctorDto;
+import com.example.HospitalMangmentSystem.exception.DuplicateResourceException;
 import com.example.HospitalMangmentSystem.exception.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -19,7 +20,7 @@ public class DoctorService {
         String email = dto.getEmail();
         for (DoctorDto d : doctors) {
             if (email.equals(d.getEmail())) {
-                throw new RuntimeException("Email already exists");
+                throw new DuplicateResourceException("Email already exists");
             }
         }
         toDto(doctor,dto);
