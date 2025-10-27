@@ -2,6 +2,7 @@ package com.example.HospitalMangmentSystem.service;
 
 import com.example.HospitalMangmentSystem.dto.DoctorCreateDto;
 import com.example.HospitalMangmentSystem.dto.DoctorDto;
+import com.example.HospitalMangmentSystem.exception.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -10,7 +11,7 @@ import java.util.List;
 @Service
 public class DoctorService {
 
-    private List<DoctorDto> doctors = new ArrayList<>();
+    private final List<DoctorDto> doctors = new ArrayList<>();
     private Long nextId = 1L;
 
     public DoctorDto createDoctor(DoctorCreateDto dto) {
@@ -21,14 +22,7 @@ public class DoctorService {
                 throw new RuntimeException("Email already exists");
             }
         }
-        doctor.setFirstName(dto.getFirstName());
-        doctor.setLastName(dto.getLastName());
-        doctor.setEmail(email);
-        doctor.setYearsOfExperience(dto.getYearsOfExperience());
-        doctor.setAppointmentIds(dto.getAppointmentIds());
-        doctor.setPhoneNumber(String.valueOf(dto.getPhoneNumber()));
-        doctor.setRating(dto.getRating());
-        doctor.setSpecialization(String.valueOf(dto.getSpecialization()));
+        toDto(doctor,dto);
         doctor.setId(this.nextId++);
         this.doctors.add(doctor);
         return doctor;
@@ -43,8 +37,31 @@ public class DoctorService {
                 return d;
             }
         }
-        return null;
+        throw new ResourceNotFoundException("Doctor with id " + id + " not found");
     }
-    public DoctorDto updateDoctor(Long id, DoctorCreateDto dto) { ... }
-    public void del
+    public DoctorDto updateDoctor(Long id, DoctorCreateDto dto) {
+        for (DoctorDto d : this.doctors) {
+            if (d.getId().equals(id)) {
+                return toDto(d,dto);
+            }
+        }
+        throw new ResourceNotFoundException("Doctor with id " + id + " not found");
+    }
+    public void deleteDoctor(Long id) {
+        boolean removed = this.doctors.removeIf(d -> d.getId().equals(id));
+        if (!removed) {
+            throw new ResourceNotFoundException("Doctor with id " + id + " not found");
+        }
+    }
+    private DoctorDto toDto (DoctorDto dto,DoctorCreateDto doctorCreateDto) {
+        dto.setFirstName(doctorCreateDto.getFirstName());
+        dto.setLastName(doctorCreateDto.getLastName());
+        dto.setEmail(doctorCreateDto.getEmail());
+        dto.setYearsOfExperience(doctorCreateDto.getYearsOfExperience());
+        dto.setAppointmentIds(doctorCreateDto.getAppointmentIds());
+        dto.setPhoneNumber(doctorCreateDto.getPhoneNumber());
+        dto.setRating(doctorCreateDto.getRating());
+        dto.setSpecialization(doctorCreateDto.getSpecialization());
+        return dto;
+    }
 }
