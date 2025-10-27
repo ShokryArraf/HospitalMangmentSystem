@@ -28,6 +28,4 @@ public class PatientDto {
         this.age = age;
         this.appointmentIds = appointmentIds;
     }
-
-    // Getters, Setters, Constructors...
 }
