@@ -30,4 +30,7 @@ public class DoctorDto {
         this.rating = rating;
         this.appointmentIds = appointmentIds;
     }
+
+    public DoctorDto() {
+    }
 }
