@@ -2,11 +2,16 @@ package com.example.HospitalMangmentSystem.service;
 
 import com.example.HospitalMangmentSystem.dto.AppointmentCreateDto;
 import com.example.HospitalMangmentSystem.dto.AppointmentDto;
+import com.example.HospitalMangmentSystem.exception.InvalidOperationException;
 import com.example.HospitalMangmentSystem.exception.ResourceNotFoundException;
 import com.example.HospitalMangmentSystem.exception.TimeSlotNotAvailableException;
 import org.springframework.stereotype.Service;
-import java.util.ArrayList;
-import java.util.List;
+
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class AppointmentService {
@@ -93,4 +98,100 @@ public class AppointmentService {
             throw new ResourceNotFoundException("Appointment with id " + id + " not found");
         }
     }
+    //getAppointmentsByPriority(String priority) → List<AppointmentDto>
+    public List<AppointmentDto> getAppointmentByPriority(String priority){
+        if (appointments.isEmpty()) {
+            throw new ResourceNotFoundException("No appointments found");
+        }
+
+        if (priority == null || priority.isBlank()) {
+            throw new InvalidOperationException("Priority must be provided");
+        }
+        List<AppointmentDto> result = appointments.stream().filter(a ->a.getPriority()
+                        .equals(priority))
+                .sorted(Comparator.comparing(AppointmentDto::getAppointmentDate).
+                        thenComparing(AppointmentDto::getAppointmentTime)).toList();
+        if (result.isEmpty()) {
+            throw new ResourceNotFoundException("No appointments found for priority: " + priority);
+        }
+        return result;
+    }
+
+    //getUpcomingAppointments(int days) → List<AppointmentDto>
+    public List<AppointmentDto> getUpcomingAppointments(int days) {
+        if (appointments.isEmpty()) {
+            throw new ResourceNotFoundException("No appointments found");
+        }
+        if (days < 1) {
+            throw new InvalidOperationException("Days must be greater than 0");
+        }
+
+        LocalDate today = LocalDate.now();
+        LocalDate futureDate = today.plusDays(days);
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm"); // if time stored as "14:30"
+
+        return appointments.stream()
+                .filter(a -> a.getStatus().equalsIgnoreCase("SCHEDULED"))
+                .filter(a -> {
+                    LocalDate appointmentDate = LocalDate.parse(a.getAppointmentDate(), dateFormatter);
+                    return !appointmentDate.isBefore(today) && !appointmentDate.isAfter(futureDate);
+                })
+                .sorted(Comparator
+                        .comparing((AppointmentDto a) -> LocalDate.parse(a.getAppointmentDate(), dateFormatter))
+                        .thenComparing(a -> LocalTime.parse(a.getAppointmentTime(), timeFormatter))
+                )
+                .collect(Collectors.toList());
+    }
+    //getAppointmentStatisticsByStatus() → Map<String, Integer>
+    public Map<String, Integer> getAppointmentStatisticsByStatus(){
+        if (appointments.isEmpty()) {
+            throw new ResourceNotFoundException("No appointments found");
+        }
+        return appointments.stream().collect(Collectors.groupingBy
+                (AppointmentDto::getStatus, Collectors.summingInt(a->1)));
+    }
+
+    //getAppointmentsByDateRange(String startDate, String endDate) →
+    //List<AppointmentDto>
+    public List<AppointmentDto> getAppointmentsByDateRange(String startDate, String endDate){
+        if (appointments.isEmpty()) {
+            throw new ResourceNotFoundException("No appointments found");
+        }
+        if (startDate == null || endDate == null) {
+            throw new InvalidOperationException("startDate and endDate must not be null");
+        }
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        LocalDate startDate1 = LocalDate.parse(startDate, dateFormatter);
+        LocalDate endDate1 = LocalDate.parse(endDate, dateFormatter);
+
+        if (endDate1.isBefore(startDate1)) {
+            throw new InvalidOperationException("endDate must not be before startDate");
+        }
+        return appointments.stream().filter(a -> {
+            LocalDate appointmentDate = LocalDate.parse(a.getAppointmentDate(), dateFormatter);
+            return !appointmentDate.isBefore(startDate1) && !appointmentDate.isAfter(endDate1);
+        }).sorted(Comparator.comparing(AppointmentDto::getAppointmentDate).thenComparing(AppointmentDto :: getAppointmentTime)).toList();
+    }
+    //getDailySchedule(Long doctorId, String date) →
+    //List<AppointmentDto>
+    public List<AppointmentDto> getDailySchedule(Long doctorId, String date){
+        if (appointments.isEmpty()) {
+            throw new ResourceNotFoundException("No appointments found");
+        }
+        if (doctorId == null) {
+            throw new InvalidOperationException("doctorId must not be null");
+        }
+        if (date == null) {
+            throw new InvalidOperationException("date must not be null");
+        }
+        List<AppointmentDto> schedule =
+        appointments.stream().filter(a -> a.getDoctorId().equals(doctorId) && a.getAppointmentDate().equalsIgnoreCase(date))
+                .sorted(Comparator.comparing(a -> LocalTime.parse(a.getAppointmentTime())))
+                .collect(Collectors.toList());
+        if (schedule.isEmpty()) throw new ResourceNotFoundException("No appointments found");
+        return schedule;
+    }
+
+
 }
