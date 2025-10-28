@@ -192,6 +192,63 @@ public class AppointmentService {
         if (schedule.isEmpty()) throw new ResourceNotFoundException("No appointments found");
         return schedule;
     }
+    // getAvailableTimeSlots(Long doctorId, String date) → List<String>
+    public List<String> getAvailableTimeSlots(Long doctorId, String date){
+        if (appointments.isEmpty()) {
+            throw new ResourceNotFoundException("No appointments found");
+        }
+        if (doctorId == null || date == null) {
+            throw new InvalidOperationException("doctorId or date must not be null");
+        }
 
+        List<String> allSlots = new ArrayList<>();
+        LocalTime startTime = LocalTime.of(9,0);
+        LocalTime endTime = LocalTime.of(17,0);
+        while (startTime.isBefore(endTime)) {
+            allSlots.add(startTime.toString());
+            startTime = startTime.plusMinutes(15);
+        }
+        List<AppointmentDto> doctorAppointments = appointments.stream().filter(a ->
+                a.getDoctorId().equals(doctorId) &&
+                a.getAppointmentDate().equalsIgnoreCase(date)).toList();
+        if (doctorAppointments.isEmpty()) {
+            return allSlots;
+        }
+        for (AppointmentDto doctorAppointment : doctorAppointments) {
+            LocalTime startDoctorAppointmentTime = LocalTime.parse(doctorAppointment.getAppointmentTime());
+            LocalTime endDoctorAppointmentTime = startDoctorAppointmentTime.plusMinutes(doctorAppointment.getDuration());
+            allSlots.removeIf(s -> {
+                LocalTime time = LocalTime.parse(s);
+                return !time.isBefore(startDoctorAppointmentTime) && time.isBefore(endDoctorAppointmentTime);
+            });
+        }
+        return allSlots;
+    }
+//getConflictingAppointments(Long doctorId, String date, String time,
+//int duration) → List<AppointmentDto>
+    public List<AppointmentDto> getConflictingAppointments(Long doctorId, String date, String time, int duration){
+        if (appointments.isEmpty()) {
+            throw new ResourceNotFoundException("No appointments found");
+        }
+        if (doctorId == null || date == null || time == null) {
+            throw new InvalidOperationException("doctorId or date or time must not be null");
+        }
+        List<AppointmentDto> conflictingAppointments = new ArrayList<>();
+        List<AppointmentDto> allAppointments = appointments.stream().filter(a ->{
+            return (a.getDoctorId().equals(doctorId) ) && (a.getAppointmentDate().equalsIgnoreCase(date));
+        }).toList();
+        LocalTime startNewAppointmentTime = LocalTime.parse(time);
+        LocalTime endNewAppointmentTime = startNewAppointmentTime.plusMinutes(duration);
+        for (AppointmentDto doctorAppointment : allAppointments) {
+            LocalTime startDoctorAppointmentTime = LocalTime.parse(doctorAppointment.getAppointmentTime());
+            LocalTime  endDoctorAppointmentTime = startDoctorAppointmentTime.plusMinutes(doctorAppointment.getDuration());
+            if (startDoctorAppointmentTime.isBefore(endNewAppointmentTime) &&
+                    endDoctorAppointmentTime.isAfter(startNewAppointmentTime)) {
+                conflictingAppointments.add(doctorAppointment);
+            }
+        }
+        return conflictingAppointments;
+
+    }
 
 }
