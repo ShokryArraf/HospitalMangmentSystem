@@ -250,5 +250,56 @@ public class AppointmentService {
         return conflictingAppointments;
 
     }
+    //. getMostBusyDay() → String
+    public String getMostBusyDay(){
+        if (appointments.isEmpty()) {
+            throw new ResourceNotFoundException("No appointments found");
+        }
+        Map<String,Integer> dates = appointments.stream().collect(Collectors.groupingBy
+                (AppointmentDto::getAppointmentDate, Collectors.summingInt(a->1)));
+        int max = 0;
+        String mostBusyDay = "";
+        for(String date: dates.keySet()){
+            if(dates.get(date)>max){
+                max = dates.get(date);
+                mostBusyDay = date;
+            }
+        }
+        return mostBusyDay;
+    }
+//getAppointmentsByDurationRange(int minDuration, int
+//maxDuration) → List<AppointmentDto>
+    public List<AppointmentDto> getAppointmentsByDurationRange(int minDuration, int maxDuration){
+        if (appointments.isEmpty()) {
+            throw new ResourceNotFoundException("No appointments found");
+        }
+        return appointments.stream()
+                .filter(a -> a.getDuration() >= minDuration && a.getDuration() <= maxDuration)
+                .toList();
+    }
+    //getCancelledAppointmentsReport() → Map<String, Object>
+    public Map<String,Object> getCancelledAppointmentsReport(){
+        if (appointments.isEmpty()) {
+            throw new ResourceNotFoundException("No appointments found");
+        }
+        List<AppointmentDto> cancelledAppointments = appointments.stream().filter(a -> {
+            return a.getStatus().equalsIgnoreCase("Cancelled");
+        }).toList();
+        if (cancelledAppointments.isEmpty()) {
+            throw new ResourceNotFoundException("No cancelled appointments found");
+        }
+        int totalCancelled =  cancelledAppointments.size();
+        Map<String,Object> report = new HashMap<>();
+        report.put("totalCancelled",totalCancelled);
 
+        // Group by doctorId
+        Map<Long, Long> cancelledByDoctor = cancelledAppointments.stream()
+                .collect(Collectors.groupingBy(AppointmentDto::getDoctorId, Collectors.counting()));
+        // Group by patientId
+        Map<Long, Long> cancelledByPatient = cancelledAppointments.stream()
+                .collect(Collectors.groupingBy(AppointmentDto::getPatientId, Collectors.counting()));
+        report.put("cancelledByDoctor",cancelledByDoctor);
+        report.put("cancelledByPatient",cancelledByPatient);
+        return report;
+    }
 }
