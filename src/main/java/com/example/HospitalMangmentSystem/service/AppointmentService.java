@@ -30,20 +30,22 @@ public class AppointmentService {
     //          CRUD
     // Create new appointment
     public AppointmentDto createAppointment(AppointmentCreateDto dto) {
-
         // Validate doctor and patient existence
         doctorService.getDoctorById(dto.getDoctorId());
         patientService.getPatientById(dto.getPatientId());
 
-        // Check if a time slot is already taken for the doctor
-        boolean slotTaken = appointments.stream()
-                .anyMatch(a -> a.getDoctorId().equals(dto.getDoctorId())
-                        && a.getAppointmentDate().equals(dto.getAppointmentDate())
-                        && a.getAppointmentTime().equals(dto.getAppointmentTime()));
+        // Check for conflicting appointments (overlapping times)
+        List<AppointmentDto> conflicts = getConflictingAppointments(
+                dto.getDoctorId(),
+                dto.getAppointmentDate(),
+                dto.getAppointmentTime(),
+                dto.getDuration()
+        );
 
-        if (slotTaken) {
+        if (!conflicts.isEmpty()) {
             throw new TimeSlotNotAvailableException(
-                    "Doctor already has an appointment at " + dto.getAppointmentDate() + " " + dto.getAppointmentTime());
+                    "Doctor already has a conflicting appointment at " + dto.getAppointmentDate() + " " + dto.getAppointmentTime()
+            );
         }
 
         // Create and add appointment
@@ -82,12 +84,35 @@ public class AppointmentService {
     public AppointmentDto updateAppointment(Long id, AppointmentCreateDto dto) {
         AppointmentDto existing = getAppointmentById(id);
 
-        // Validate doctor & patient exist
+        // Validate doctor & patient existence
         doctorService.getDoctorById(dto.getDoctorId());
         patientService.getPatientById(dto.getPatientId());
 
+        // Check for conflicting appointments (excluding the current one)
+        List<AppointmentDto> conflicts = getConflictingAppointments(
+                dto.getDoctorId(),
+                dto.getAppointmentDate(),
+                dto.getAppointmentTime(),
+                dto.getDuration()
+        ).stream()
+                .filter(a -> !a.getId().equals(id)) // exclude the appointment being updated
+                .toList();
+
+        if (!conflicts.isEmpty()) {
+            throw new TimeSlotNotAvailableException(
+                    "Doctor already has a conflicting appointment at " + dto.getAppointmentDate() + " " + dto.getAppointmentTime()
+            );
+        }
+
+        // Apply updates
         toDto(dto, existing);
 
+        return existing;
+    }
+
+    public AppointmentDto updateAppointmentStatus(Long id, String status) {
+        AppointmentDto existing = getAppointmentById(id);
+        existing.setStatus(status);
         return existing;
     }
 
