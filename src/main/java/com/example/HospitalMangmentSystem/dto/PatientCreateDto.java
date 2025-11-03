@@ -19,8 +19,8 @@ public class PatientCreateDto {
     @Email
     @NotBlank
     private String email;
-    @Pattern(regexp = "05\\d{7}",
-            message = "Must match the format: 05,XXXXXXX (7 digits)")
+    @Pattern(regexp = "05\\d{8}",
+            message = "Must match the format: 05,XXXXXXXX (8 digits)")
     private String phoneNumber;
     @Pattern(
             regexp = "\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])",
