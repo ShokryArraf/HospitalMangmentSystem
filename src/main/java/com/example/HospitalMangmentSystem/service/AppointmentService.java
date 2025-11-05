@@ -53,6 +53,10 @@ public class AppointmentService {
         appointment.setId(nextId++);
         toDto(dto, appointment);
         appointments.add(appointment);
+        // Link appointment to patient
+        patientService.getPatientById(dto.getPatientId()).getAppointmentIds().add(appointment.getId());
+        // Link appointment to doctor
+        doctorService.getDoctorById(dto.getDoctorId()).getAppointmentIds().add(appointment.getId());
         return appointment;
     }
 
