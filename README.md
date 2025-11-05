@@ -197,8 +197,12 @@ GET /appointments/cancelled-report — Get a report of cancelled appointments
 🌐 Expand frontend UI with filters and analytics
 
 
+
 👨‍💻 Author
+
 Shokry Arraf
+
 📧 arraf.shokry.as@gmail.com
+
 🔗 [Shokry Arraf - LinkedIn](https://www.linkedin.com/in/Shokry-Arraf/)
 
