@@ -68,7 +68,7 @@ notes	String	optional, max 500 chars
 🚀 How to Run
 
 1️⃣ Clone the Repository
-git clone https://github.com/ShokryArraf/HospitalManagementSystem.git
+git clone https:[//github.com/ShokryArraf/HospitalManagementSystem.git](https://github.com/ShokryArraf/HospitalMangmentSystem)
 cd HospitalManagementSystem
 
 2️⃣ Build & Run
