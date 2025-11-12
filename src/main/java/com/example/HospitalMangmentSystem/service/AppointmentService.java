@@ -257,7 +257,7 @@ public class AppointmentService {
 //int duration) → List<AppointmentDto>
     public List<AppointmentDto> getConflictingAppointments(Long doctorId, String date, String time, int duration){
         if (appointments.isEmpty()) {
-            throw new ResourceNotFoundException("No appointments found");
+            return new ArrayList<>();
         }
         if (doctorId == null || date == null || time == null) {
             throw new InvalidOperationException("doctorId or date or time must not be null");

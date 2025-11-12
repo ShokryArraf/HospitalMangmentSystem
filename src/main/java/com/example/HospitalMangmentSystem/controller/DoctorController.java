@@ -4,7 +4,9 @@ import com.example.HospitalMangmentSystem.dto.DoctorCreateDto;
 import com.example.HospitalMangmentSystem.dto.DoctorDto;
 import com.example.HospitalMangmentSystem.service.DoctorService;
 import jakarta.validation.Valid;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,10 +22,24 @@ public class DoctorController {
     public DoctorController(DoctorService doctorService) {
         this.doctorService = doctorService;
     }
+//    @PostMapping
+//    public ResponseEntity<DoctorDto> createDoctor(@Valid @RequestBody DoctorCreateDto dto) {
+//        return ResponseEntity.ok(doctorService.createDoctor(dto));
+//    }
     @PostMapping
-    public ResponseEntity<DoctorDto> createDoctor(@Valid @RequestBody DoctorCreateDto dto) {
-        return ResponseEntity.ok(doctorService.createDoctor(dto));
+    public ResponseEntity<?> createDoctor(@Valid @RequestBody DoctorCreateDto dto, BindingResult result) {
+        if (result.hasErrors()) {
+             // Return readable validation error messages
+            return ResponseEntity.badRequest().body(
+                   result.getAllErrors().stream()
+                            .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                            .toList()
+           );
+        }
+        DoctorDto createdDoctor = doctorService.createDoctor(dto);
+        return ResponseEntity.ok(createdDoctor);
     }
+
 
     @GetMapping
     public ResponseEntity<List<DoctorDto>> getAllDoctors() {

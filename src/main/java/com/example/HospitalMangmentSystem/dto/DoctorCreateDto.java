@@ -23,14 +23,14 @@ public class DoctorCreateDto {
     @Pattern(regexp = "Cardiology|Orthopedics|Pediatrics|Neurology|Dermatology|General",
             message = "Specialty must be one of Cardiology, Orthopedics, Pediatrics, Neurology, Dermatology, General")
     private String specialization;
-    @Pattern(regexp = "05\\d{7}",
-            message = "Must match the format: 05,XXXXXXX (7 digits)")
+    @Pattern(regexp = "05\\d{8}",
+            message = "Must match the format: 05XXXXXXXX (10 digits total)")
     private String phoneNumber;
-    @NotBlank
+    @NotNull
     @Min(0)
     @Max(50)
     private Integer yearsOfExperience;
-    @NotBlank
+    @NotNull
     @DecimalMin("0.0")
     @DecimalMax("5.0")
     private Double rating;
